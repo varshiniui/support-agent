@@ -33,7 +33,8 @@ async def log_requests(request: Request, call_next):
         elapsed_ms,
     )
     return response
-from app.api import auth,tickets
+
+from app.api import auth, conversations, orders, tickets
 
 @app.exception_handler(Exception)
 @app.exception_handler(AppError)
@@ -50,3 +51,5 @@ def health_check():
 
 app.include_router(tickets.router)
 app.include_router(auth.router)
+app.include_router(orders.router)
+app.include_router(conversations.router)
