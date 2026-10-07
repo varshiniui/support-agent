@@ -29,3 +29,21 @@ def get_ticket(ticket_id: int):
         if ticket.id == ticket_id:
             return ticket
     raise HTTPException(status_code=404, detail="Ticket not found")
+
+@router.put("/{ticket_id}", response_model=TicketOut)
+def update_ticket(ticket_id: int, payload: TicketCreate):
+    for index, ticket in enumerate(fake_db):
+        if ticket.id == ticket_id:
+            updated = TicketOut(id=ticket_id, status=ticket.status, **payload.model_dump())
+            fake_db[index] = updated
+            return updated
+    raise HTTPException(status_code=404, detail="Ticket not found")
+
+
+@router.delete("/{ticket_id}", status_code=204)
+def delete_ticket(ticket_id: int):
+    for index, ticket in enumerate(fake_db):
+        if ticket.id == ticket_id:
+            fake_db.pop(index)
+            return
+    raise HTTPException(status_code=404, detail="Ticket not found")
