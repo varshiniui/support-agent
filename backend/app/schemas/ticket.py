@@ -21,3 +21,6 @@ class TicketOut(BaseModel):
     status: str
     order_id: int | None
     created_at: datetime
+
+class TicketStatusUpdate(BaseModel):
+    status: Literal["open", "in_progress", "resolved", "closed"]

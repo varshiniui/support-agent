@@ -35,6 +35,15 @@ class TicketService:
         self.db.refresh(ticket)
         return ticket
 
+    def update_status(self, ticket_id: int, status: str) -> SupportTicket:
+        ticket = self.db.get(SupportTicket, ticket_id)
+        if ticket is None:
+            raise NotFoundError("Ticket not found")
+        ticket.status = status
+        self.db.commit()
+        self.db.refresh(ticket)
+        return ticket
+
     def get_ticket(self, customer_id: int, ticket_id: int) -> SupportTicket:
         ticket = self.db.scalar(
             select(SupportTicket).where(

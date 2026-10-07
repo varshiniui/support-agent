@@ -1,13 +1,13 @@
 from datetime import date, timedelta
 from decimal import Decimal
-
+from app.core.security import hash_password
 from sqlalchemy import select
 
 from app.core.database import SessionLocal
 from app.models import Customer, FAQDocument, Order, User
 
-# Temporary. Phase 4 replaces this with real password hashing.
-PLACEHOLDER_HASH = "not-a-real-hash"
+DEMO_PASSWORD = "demo12345"  # local demo data only
+DEMO_HASH = hash_password(DEMO_PASSWORD)
 
 
 def seed() -> None:
@@ -19,12 +19,12 @@ def seed() -> None:
         asha = Customer(
             full_name="Asha Raman",
             phone="9000000001",
-            user=User(email="asha@example.com", hashed_password=PLACEHOLDER_HASH),
+            user=User(email="asha@example.com", hashed_password=DEMO_HASH),
         )
         ravi = Customer(
             full_name="Ravi Kumar",
             phone="9000000002",
-            user=User(email="ravi@example.com", hashed_password=PLACEHOLDER_HASH),
+            user=User(email="ravi@example.com", hashed_password=DEMO_HASH),
         )
 
         orders = [
@@ -49,8 +49,8 @@ def seed() -> None:
             FAQDocument(title="Damaged or wrong item", category="returns",
                         content="If your item arrives damaged or is not what you ordered, raise a support ticket within 7 days of delivery with a short description, and we will arrange a replacement or refund."),
         ]
-
-        db.add_all([asha, ravi, *orders, *faqs])
+        staff = User(email="agent@shop.com", hashed_password=DEMO_HASH, role="staff")
+        db.add_all([asha, ravi, *orders, *faqs,staff])
         db.commit()
         print("Seeded 2 customers, 3 orders, 4 FAQ documents.")
 
