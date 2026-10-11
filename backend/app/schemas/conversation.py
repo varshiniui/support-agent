@@ -26,3 +26,6 @@ class ConversationOut(BaseModel):
 
 class ConversationDetail(ConversationOut):
     messages: list[MessageOut]
+
+class MessageCreate(BaseModel):
+    content: str = Field(min_length=1, max_length=2000)

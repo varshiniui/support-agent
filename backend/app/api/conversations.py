@@ -8,7 +8,10 @@ from app.schemas.conversation import (
     ConversationCreate,
     ConversationDetail,
     ConversationOut,
+    MessageCreate,
+    MessageOut
 )
+
 from app.services.conversation_service import ConversationService
 
 router = APIRouter(prefix="/conversations", tags=["conversations"])
@@ -50,4 +53,21 @@ def delete_conversation(
     user: User = Depends(get_current_user),
     service: ConversationService = Depends(get_conversation_service),
 ):
+
+
     service.delete(user.id, conversation_id)
+@router.post(
+    "/{conversation_id}/messages", response_model=list[MessageOut], status_code=201
+)
+def send_message(
+    conversation_id: int,
+    payload: MessageCreate,
+    user: User = Depends(get_current_user),
+    service: ConversationService = Depends(get_conversation_service),
+):
+    user_msg = service.add_message(user.id, conversation_id, "user", payload.content)
+    # TEMPORARY: Phase 7 replaces this line with the real LLM reply.
+    reply = service.add_message(
+        user.id, conversation_id, "assistant", "Roh is not connected to the AI yet."
+    )
+    return [user_msg, reply]

@@ -2,7 +2,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.exceptions import NotFoundError
-from app.models import Conversation
+from app.models import Conversation,Message
 
 
 class ConversationService:
@@ -39,3 +39,13 @@ class ConversationService:
         conversation = self.get(user_id, conversation_id)
         self.db.delete(conversation)
         self.db.commit()
+    
+    def add_message(
+        self, user_id: int, conversation_id: int, role: str, content: str
+    ) -> Message:
+        conversation = self.get(user_id, conversation_id)  # ownership check
+        message = Message(conversation_id=conversation.id, role=role, content=content)
+        self.db.add(message)
+        self.db.commit()
+        self.db.refresh(message)
+        return message
