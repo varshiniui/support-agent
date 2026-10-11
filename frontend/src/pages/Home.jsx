@@ -3,19 +3,30 @@ import { useAuth } from "../AuthContext";
 import Chat from "../components/Chat";
 import Orders from "../components/Orders";
 import Tickets from "../components/Tickets";
+import Wordmark from "../components/Wordmark";
 
 const TABS = { chat: Chat, orders: Orders, tickets: Tickets };
 
 export default function Home() {
   const { user, logout } = useAuth();
   const [tab, setTab] = useState("chat");
+  const [thinking, setThinking] = useState(false);
   const View = TABS[tab];
-
-  return (
+  const [slot, setSlot] = useState(null);
+    return (
     <div className="app">
-      <header className="topbar">
-        <strong>Roh</strong>
-        <nav>
+      <aside className="rail">
+        <div className="brand">
+          <Wordmark thinking={thinking} />
+        </div>
+        <div className="rail-slot" ref={setSlot} />
+        <div className="rail-foot">
+          <span>{user.email}</span>
+          <button className="rail-out" onClick={logout}>Log out</button>
+        </div>
+      </aside>
+      <main className="main">
+        <nav className="tabs">
           {Object.keys(TABS).map((name) => (
             <button
               key={name}
@@ -26,11 +37,9 @@ export default function Home() {
             </button>
           ))}
         </nav>
-        <span className="muted">{user.email}</span>
-        <button className="ghost" onClick={logout}>Log out</button>
-      </header>
-      <main className="content">
-        <View />
+        <div className="content">
+          <View onThinking={setThinking} slot={slot} />
+        </div>
       </main>
     </div>
   );

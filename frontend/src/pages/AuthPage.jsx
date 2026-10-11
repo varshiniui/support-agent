@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../AuthContext";
-
+import Wordmark from "../components/Wordmark";
 export default function AuthPage() {
   const { login, register } = useAuth();
   const navigate = useNavigate();
