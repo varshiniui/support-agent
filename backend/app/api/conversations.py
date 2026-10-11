@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-
+from app.agent.llm import get_llm_client
+from app.services.chat_service import ChatService
 from app.api.deps import get_current_user
 from app.core.database import get_db
 from app.models import User
@@ -9,9 +10,8 @@ from app.schemas.conversation import (
     ConversationDetail,
     ConversationOut,
     MessageCreate,
-    MessageOut
+    MessageOut,
 )
-
 from app.services.conversation_service import ConversationService
 
 router = APIRouter(prefix="/conversations", tags=["conversations"])
@@ -19,6 +19,10 @@ router = APIRouter(prefix="/conversations", tags=["conversations"])
 
 def get_conversation_service(db: Session = Depends(get_db)) -> ConversationService:
     return ConversationService(db)
+
+
+def get_chat_service(db: Session = Depends(get_db)) -> ChatService:
+    return ChatService(db, get_llm_client())
 
 
 @router.post("", response_model=ConversationOut, status_code=201)
@@ -53,9 +57,9 @@ def delete_conversation(
     user: User = Depends(get_current_user),
     service: ConversationService = Depends(get_conversation_service),
 ):
-
-
     service.delete(user.id, conversation_id)
+
+
 @router.post(
     "/{conversation_id}/messages", response_model=list[MessageOut], status_code=201
 )
@@ -63,11 +67,6 @@ def send_message(
     conversation_id: int,
     payload: MessageCreate,
     user: User = Depends(get_current_user),
-    service: ConversationService = Depends(get_conversation_service),
+    chat: ChatService = Depends(get_chat_service),
 ):
-    user_msg = service.add_message(user.id, conversation_id, "user", payload.content)
-    # TEMPORARY: Phase 7 replaces this line with the real LLM reply.
-    reply = service.add_message(
-        user.id, conversation_id, "assistant", "Roh is not connected to the AI yet."
-    )
-    return [user_msg, reply]
+    return chat.reply(user.id, conversation_id, payload.content)

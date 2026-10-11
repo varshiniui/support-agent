@@ -66,6 +66,7 @@ export default function Chat() {
       });
       setMessages([...messages, ...created]);
       setInput("");
+      api("/conversations").then(setConversations).catch(() => {});
     } catch (e) {
       setError(e.message);
     } finally {
@@ -108,6 +109,7 @@ export default function Chat() {
                   {m.content}
                 </div>
               ))}
+              {sending && <div className="bubble assistant">Roh is thinking...</div>}
               <div ref={bottomRef} />
             </div>
             {error && <p className="error">{error}</p>}

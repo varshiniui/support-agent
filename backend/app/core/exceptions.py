@@ -17,3 +17,6 @@ class ConflictError(AppError):
 
 class UnauthorizedError(AppError):
     status_code = 401
+    
+class LLMUnavailableError(AppError):
+    status_code = 503
