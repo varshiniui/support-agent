@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { api } from "../api";
 const STARTERS = ["Where is my order?", "What is your refund policy?", "I want to raise a complaint"];
 import { createPortal } from "react-dom";
+import TypedText from "./TypedText";
 
 export default function Chat({ onThinking, slot }) {
   const [conversations, setConversations] = useState([]);
@@ -22,6 +23,7 @@ export default function Chat({ onThinking, slot }) {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+  const scrollToEnd = () => bottomRef.current?.scrollIntoView({ block: "end" });
 
   async function open(id) {
     setActiveId(id);
@@ -59,22 +61,33 @@ export default function Chat({ onThinking, slot }) {
     }
   }
 
-  async function send(e) {
+    async function send(e) {
     e.preventDefault();
     const text = input.trim();
     if (!text || sending) return;
+
+    const temp = { id: `tmp-${Date.now()}`, role: "user", content: text };
+    setMessages((prev) => [...prev, temp]);
+    setInput("");
     setSending(true);
     setError("");
+
     try {
       const created = await api(`/conversations/${activeId}/messages`, {
         method: "POST",
         body: { content: text },
       });
-      setMessages([...messages, ...created]);
-      setInput("");
+      const [userMsg, reply] = created;
+      setMessages((prev) => [
+        ...prev.filter((m) => m.id !== temp.id),
+        { ...userMsg, key: temp.id },
+        { ...reply, animate: true },
+      ]);
       api("/conversations").then(setConversations).catch(() => {});
-    } catch (e) {
-      setError(e.message);
+    } catch (err) {
+      setMessages((prev) => prev.filter((m) => m.id !== temp.id));
+      setInput(text);
+      setError(err.message);
     } finally {
       setSending(false);
     }
@@ -124,12 +137,14 @@ export default function Chat({ onThinking, slot }) {
         ) : (
           <>
             <div className="messages">
-              {messages.map((m) => (
-                <div key={m.id} className={`msg-row ${m.role}`}>
+                          {messages.map((m) => (
+                <div key={m.key ?? m.id} className={`msg-row ${m.role}`}>
                   {m.role !== "user" && (
                     <span className="avatar" aria-hidden="true">R</span>
                   )}
-                  <div className={`bubble ${m.role}`}>{m.content}</div>
+                  <div className={`bubble ${m.role}`}>
+                    <TypedText text={m.content} animate={Boolean(m.animate)} onTick={scrollToEnd} />
+                  </div>
                 </div>
               ))}
               {sending && (
