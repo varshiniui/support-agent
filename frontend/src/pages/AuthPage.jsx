@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../AuthContext";
 import Wordmark from "../components/Wordmark";
+
 export default function AuthPage() {
   const { login, register } = useAuth();
   const navigate = useNavigate();
@@ -30,8 +31,8 @@ export default function AuthPage() {
   return (
     <div className="auth-wrap">
       <form className="card" onSubmit={submit}>
-        <h1>Roh</h1>
-        <p className="muted">Your AI support assistant</p>
+        <h1 className="auth-brand"><Wordmark /></h1>
+        <p className="muted">Ask about an order, a refund, or a problem.</p>
 
         {mode === "register" && (
           <input name="full_name" placeholder="Full name" value={form.full_name} onChange={update} required />
