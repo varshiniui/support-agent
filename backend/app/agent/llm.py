@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from functools import lru_cache
 
 import groq
-from langchain_core.messages import BaseMessage
+from langchain_core.messages import AIMessage, BaseMessage
 from langchain_groq import ChatGroq
 
 from app.core.config import settings
@@ -16,8 +16,8 @@ class LLMClient(ABC):
     """What the rest of the app needs from any language model."""
 
     @abstractmethod
-    def generate(self, messages: list[BaseMessage]) -> str:
-        """Send chat messages to a model and return the reply text."""
+    def generate(self, messages: list[BaseMessage], tools: list | None = None) -> AIMessage:
+        """Send messages to a model. The reply may ask to call tools."""
 
 
 class GroqLLMClient(LLMClient):
@@ -38,8 +38,10 @@ class GroqLLMClient(LLMClient):
             )
         return self._model
 
-    def generate(self, messages: list[BaseMessage]) -> str:
+    def generate(self, messages: list[BaseMessage], tools: list | None = None) -> AIMessage:
         model = self._get_model()
+        if tools:
+            model = model.bind_tools(tools)
         try:
             reply = model.invoke(messages)
         except groq.RateLimitError:
@@ -55,10 +57,11 @@ class GroqLLMClient(LLMClient):
             logger.exception("Unexpected LLM error")
             raise LLMUnavailableError("Roh is temporarily unavailable. Please try again.")
 
-        text = reply.content
-        if not isinstance(text, str) or not text.strip():
+        if reply.tool_calls:
+            return reply
+        if not isinstance(reply.content, str) or not reply.content.strip():
             raise LLMUnavailableError("Roh could not produce an answer. Please try again.")
-        return text.strip()
+        return reply
 
 
 @lru_cache

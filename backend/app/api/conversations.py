@@ -69,4 +69,4 @@ def send_message(
     user: User = Depends(get_current_user),
     chat: ChatService = Depends(get_chat_service),
 ):
-    return chat.reply(user.id, conversation_id, payload.content)
+        return chat.reply(user, conversation_id, payload.content)

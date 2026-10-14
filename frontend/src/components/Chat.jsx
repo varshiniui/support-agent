@@ -30,7 +30,7 @@ export default function Chat({ onThinking, slot }) {
     setError("");
     try {
       const detail = await api(`/conversations/${id}`);
-      setMessages(detail.messages);
+      setMessages(detail.messages.filter((m) => m.role !== "tool"));
     } catch (e) {
       setError(e.message);
     }

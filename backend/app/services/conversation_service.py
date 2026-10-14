@@ -2,8 +2,10 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.exceptions import NotFoundError
-from app.models import Conversation,Message
+from app.models import Conversation, Message
+
 DEFAULT_TITLE = "New conversation"
+
 
 class ConversationService:
     def __init__(self, db: Session):
@@ -39,15 +41,25 @@ class ConversationService:
         conversation = self.get(user_id, conversation_id)
         self.db.delete(conversation)
         self.db.commit()
-    
+
     def add_message(
-        self, user_id: int, conversation_id: int, role: str, content: str
+        self,
+        user_id: int,
+        conversation_id: int,
+        role: str,
+        content: str,
+        tool_name: str | None = None,
     ) -> Message:
         conversation = self.get(user_id, conversation_id)  # ownership check
         if role == "user" and conversation.title == DEFAULT_TITLE:
             short = content[:40].strip()
             conversation.title = short + ("..." if len(content) > 40 else "")
-        message = Message(conversation_id=conversation.id, role=role, content=content)
+        message = Message(
+            conversation_id=conversation.id,
+            role=role,
+            content=content,
+            tool_name=tool_name,
+        )
         self.db.add(message)
         self.db.commit()
         self.db.refresh(message)

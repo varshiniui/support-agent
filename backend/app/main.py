@@ -36,8 +36,15 @@ async def log_requests(request: Request, call_next):
 
 from app.api import auth, conversations, orders, tickets
 
-@app.exception_handler(Exception)
 @app.exception_handler(AppError)
+async def app_error_handler(request: Request, exc: AppError):
+    return JSONResponse(status_code=exc.status_code, content={"detail": exc.message})
+
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    logger.exception("Unhandled error on %s %s", request.method, request.url.path)
+    return JSONResponse(status_code=500, content={"detail": "Internal server error"})
 async def app_error_handler(request: Request, exc: AppError):
     return JSONResponse(status_code=exc.status_code, content={"detail": exc.message})
 async def unhandled_exception_handler(request: Request, exc: Exception):
